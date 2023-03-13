@@ -1,0 +1,27 @@
+stages:
+  - style_guide
+  - pages
+
+clang_tests:
+  image: gitlab.labsec.ufsc.br:666/sgc/tools/docker/rhel74:clang-format
+  stage: style_guide
+  tags:
+    - docker
+  script:
+    - find . -name "*.cpp" ! -name GlobalMessages.cpp ! -name ManagerialReport.cpp ! -name YwapaEnum.cpp ! -name UiTestController.cpp ! -name LogDescriptor.cpp | xargs clang-format -n -Werror
+  allow_failure: true
+
+pages:
+  image: alpine
+  stage: pages
+  script:  
+  - apk update
+  - apk add doxygen
+  - doxygen Doxyfile
+  - mv codedoc/html/ public/
+  artifacts:
+    paths:
+    - public
+  only:
+    - tags
+

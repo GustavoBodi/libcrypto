@@ -1,6 +1,8 @@
+#include "libcryptosec/certificate/GeneralNames.h"
 #include <libcryptosec/ByteArray.h>
 #include <libcryptosec/certificate/AuthorityKeyIdentifierExtension.h>
 #include <openssl/asn1.h>
+#include <openssl/x509v3.h>
 #include <sstream>
 #include <gtest/gtest.h>
 
@@ -60,7 +62,23 @@ protected:
         tab + "\t</extnValue>\n" + 
         tab + "</authorityKeyIdentifier>\n";
       ASSERT_EQ(ext.getXmlEncoded(tab), expected);
+    }
 
+    void setAuthCertIss(AuthorityKeyIdentifierExtension ext) {
+      auto general_name = GeneralName();
+      general_name.setRfc822Name(name);
+      auto names = GeneralNames();
+      names.addGeneralName(general_name);
+      ext.setAuthorityCertIssuer(names);
+
+      auto extracted = ext.getAuthorityCertIssuer();
+
+      ASSERT_TRUE(extracted.getXmlEncoded() == names.getXmlEncoded());
+    }
+
+    void setAuthSerial(AuthorityKeyIdentifierExtension ext) {
+      ext.setAuthorityCertSerialNumber(serialNumber);
+      ASSERT_EQ(ext.getAuthorityCertSerialNumber(), serialNumber);
     }
 
     void SetKey(AuthorityKeyIdentifierExtension ext) {
@@ -160,3 +178,10 @@ TEST_F(AuthorityKeyIdentifierExtensionTest, GetTypeTest) {
   GetType(DefaultConstructor());
 }
 
+TEST_F(AuthorityKeyIdentifierExtensionTest, AuthCertTest) {
+  setAuthCertIss(DefaultConstructor());
+}
+
+TEST_F(AuthorityKeyIdentifierExtensionTest, AuthSerialTest) {
+  setAuthSerial(DefaultConstructor());
+}
